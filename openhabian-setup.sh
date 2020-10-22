@@ -106,7 +106,6 @@ if [[ -n "$UNATTENDED" ]]; then
   misc_system_settings
   samba_setup
   permissions_corrections
-  clean_config_userpw
   frontail_setup
   zram_setup
   exim_setup
