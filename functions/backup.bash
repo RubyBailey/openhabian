@@ -347,14 +347,14 @@ amanda_setup() {
 ##    mirror_SD(String method, String destinationDevice)
 ##
 mirror_SD() {
-  local dest="${2:-${backupdrive}}"
-  local dirty="no"
-  local dumpInfoText="For your information as the operator of this openHABian system:\\nA timed background job to run semiannually has just created a full raw device copy of your RPI's internal SD card.\\nOnly partitions to contain openHABian (/boot and / partitions 1 & 2) were copied."
-  local partUUID
   local src="/dev/mmcblk0"
+  local dest="${2:-${backupdrive}}"
   local start
   local storageDir="${storagedir:-/storage}"
   local syncMount="${storageDir}/syncmount"
+  local dirty="no"
+  local dumpInfoText="For your information as the operator of this openHABian system:\\nA timed background job to run semiannually has just created a full raw device copy of your RPI's internal SD card.\\nOnly partitions to contain openHABian (/boot and / partitions 1 & 2) were copied."
+  local partUUID
 
   if [[ "${src}" == "${dest}" ]]; then
     echo "FAILED (source = destination)"
@@ -385,8 +385,8 @@ mirror_SD() {
     echo "Taking a raw partition copy, be prepared this may take long such as 20-30 minutes for a 16 GB SD card"
     if ! cond_redirect dd if="${src}p1" bs=1M of="${dest}1" status=progress; then echo "FAILED (raw device copy of ${dest}1)"; dirty="yes"; fi
     if ! cond_redirect dd if="${src}p2" bs=1M of="${dest}2" status=progress; then echo "FAILED (raw device copy of ${dest}2)"; dirty="yes"; fi
-    origPartUUID="$(blkid "${src}p2" | sed -n 's|^.*PARTUUID="\(\S\+\)".*|\1|p' | sed -e 's/-02//g')"
-    if ! partUUID="$(yes | cond_redirect set-partuuid "${dest}2" random | awk '/^PARTUUID/ { print substr($7,1,length($7) - 3) }')"; then echo "FAILED (set random PARTUUID)"; dirty="yes"; fi
+    origPartUUID=$(blkid "${src}p2" | sed -n 's|^.*PARTUUID="\(\S\+\)".*|\1|p' | sed -e 's/-02//g')
+    if ! partUUID=$(yes | cond_redirect set-partuuid "${dest}2" random | awk '/^PARTUUID/ { print substr($7,1,length($7) - 3) }'); then echo "FAILED (set random PARTUUID)"; dirty="yes"; fi
     if ! cond_redirect tune2fs "${dest}2" -U random; then echo "FAILED (set random UUID)"; dirty="yes"; fi
     mount "${dest}1" "$syncMount"
     sed -i "s|${origPartUUID}|${partUUID}|g" "${syncMount}"/cmdline.txt
