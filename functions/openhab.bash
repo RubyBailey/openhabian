@@ -88,7 +88,7 @@ openhab_setup() {
 
     echo "$repo" > /etc/apt/sources.list.d/${ohPkgName}.list
 
-    echo -n "$(timestamp) [openHABian] Installing selected openHAB version... "
+    echo -n "$(timestamp) [openHABian] Installing selected $1 version... "
     if ! cond_redirect apt-get update; then echo "FAILED (update apt lists)"; return 1; fi
     openhabVersion="$(apt-cache madison ${ohPkgName} | head -n 1 | cut -d'|' -f2 | xargs)"
     if cond_redirect apt-get install --allow-downgrades --yes "${ohPkgName}=${openhabVersion}" "${ohPkgName}-addons=${openhabVersion}"; then echo "OK"; else echo "FAILED"; return 1; fi
@@ -98,9 +98,9 @@ openhab_setup() {
   fi
 
   # shellcheck disable=SC2154
-  gid="$(id -g "$username")"
-  usermod -g "openhab" "$username"
-  usermod -aG "$gid" "$username"
+  gid=$(id -g "$username")
+  cond_redirect usermod -g "openhab" "$username" &> /dev/null
+  cond_redirect usermod -aG "$gid" "$username" &> /dev/null
 
   echo -n "$(timestamp) [openHABian] Setting up openHAB service... "
   if ! cond_redirect systemctl -q daemon-reload &> /dev/null; then echo "FAILED (daemon-reload)"; return 1; fi
